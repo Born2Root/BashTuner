@@ -1,0 +1,53 @@
+#!/bin/bash
+# Bashtuner V2.0 by Born2Root
+# Abspielen von Internetradios und Anzeigen eines PopUps, mit dem aktuellen Song
+
+#====> Pfade definieren
+pfadsender="$HOME/Programme/bashtuner/sender.csv" ; #Pfad zur Senderliste
+
+#Ablageort der Logdatei und der Temporären Bilderablage (Ablum Pics)
+config_dir=~/.bash_radio
+fifo=$config_dir/fifo
+image_file=$config_dir/image
+log_file=$config_dir/log
+
+
+#====> Hauptprogramm
+
+if [ ! -d $config_dir ]; then
+    mkdir $config_dir
+fi
+
+if [ ! -p $fifo ]; then
+    mkfifo $fifo
+fi
+
+trap "rm -f $fifo" INT TERM EXIT
+
+
+playradio() {
+auswahl=$(awk -F "	" '{print $1"\n"$2}' $pfadsender | zenity --list --hide-column=1 --column "Nummer" --column "Sender" --title="Bashtuner" --ok-label="Abspielen" --cancel-label="Exit" --text="Radiosender einschalten" --width=600 --height=300)
+if [ $? = "1" ] ; then exit 1 ; else
+export play=$(cat $HOME/Programme/bashtuner/sender.csv | head -n"$auswahl" | tail -n1 | cut -d'	' -f3)
+## das ist meine Alte Lösung, wo der aktuelle Song nur im Terminal ausgegeben wird
+#mplayer $play 2> /dev/null | awk -F\' '/StreamTitle/ {print $2}'
+#echo 'message:' | zenity --notification --listen
+
+
+## das ist die neue Lösung
+mplayer $play 2>/dev/null | stdbuf -o L grep --text ICY > $fifo &
+
+while read line < $fifo; do
+	args=$(echo $line | sed -r "s/ICY Info: StreamTitle='([^-]*) - ([^']*)';StreamUrl='([^']*)';/\1;\2;\3/")
+	saveIFS=$IFS; IFS=";"; set -- $args; IFS=$saveIFS
+	
+	#Titel in Logfile schreiben
+	#echo $(date +%D) $1 - $2 >> $log_file
+	#Titel in Konsole ausgeben
+	echo $1 - $2
+done
+#wait
+playradio
+fi
+}
+playradio

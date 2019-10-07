@@ -1,11 +1,14 @@
 #!/bin/bash
 # Bashtuner V2.0 by Born2Root
 # Play Internet Radio from Linux Command Line
+# Features: 
+#	- Log to played songs to terminal
+#	- Show Pop-Up Window when new Song is played
 
 #====> Define Paths
 
 # Path to radio station list
-pfadsender="$HOME/Programme/bashtuner/sender.csv" ; 
+pfadsender="$HOME/Programme/bashtuner/sender.csv" ;
 
 # Path to Logfile and temporary picture save location (album covers)
 config_dir=~/.bash_radio
@@ -32,12 +35,27 @@ auswahl=$(awk -F "	" '{print $1"\n"$2}' $pfadsender | zenity --list --hide-colum
 if [ $? = "1" ] ; then exit 1 ; else
 export play=$(cat $HOME/Programme/bashtuner/sender.csv | head -n"$auswahl" | tail -n1 | cut -d'	' -f3)
 
-mplayer $play 2> /dev/null | awk -F\' '/StreamTitle/ {print $2}'
+## old solution - current played song ist only printed to terminal
+#mplayer $play 2> /dev/null | awk -F\' '/StreamTitle/ {print $2}'
+#echo 'message:' | zenity --notification --listen
 
-#print current played song to terminal
-echo 'message:' | zenity --notification --listen
 
+## new solution - current song is showed with Pop-Up window, printed to terminal and logged in logfile
+mplayer $play 2>/dev/null | stdbuf -o L grep --text ICY > $fifo &
 
+while read line < $fifo; do
+	args=$(echo $line | sed -r "s/ICY Info: StreamTitle='([^-]*) - ([^']*)';StreamUrl='([^']*)';/\1;\2;\3/")
+	saveIFS=$IFS; IFS=";"; set -- $args; IFS=$saveIFS
+
+	# Show PopUp Window 10s long, containing Song info and Cover if present
+	#wget -q $3 -O $image_file 2>/dev/null
+	notify-send -t 10000 -i $image_file "$1" "$2" 2>/dev/null
+	
+	# write played songs to Logfile
+	#echo $(date +%D) $1 - $2 >> $log_file
+	# write played songs to terminal
+	echo $1 - $2
+done
 #wait
 playradio
 fi

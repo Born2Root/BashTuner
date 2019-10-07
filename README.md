@@ -11,6 +11,7 @@ To change the channel, just hit `Strg+C` and choose another channel in the Pop-U
 
 To exit, just hit `Strg+C` and exit within the GUI-Exit-Button.
 
+To edit the radio channel list, just edit the `sender.csv`
 
 ## Used Software - Dependencies
 - MPlayer for audio playing

@@ -8,7 +8,7 @@
 #====> Define Paths
 
 # Path to radio station list
-pfadsender="$HOME/Programme/bashtuner/sender.csv" ;
+pfadsender="$HOME/sender.csv" ;
 
 # Path to Logfile and temporary picture save location (album covers)
 config_dir=~/.bash_radio

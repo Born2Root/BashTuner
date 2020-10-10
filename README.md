@@ -1,5 +1,8 @@
 # BashTuner
-Small Linux Terminal Radio Player
+**Small Linux-Terminal Radio Player**
+
+Clutterless, and performance optimized terminal webradio player with the ability to easy switch between different stations.
+In addition the player prints out the current played song.
 
 ## Usage
 - To start execute within your terminal `./radio`

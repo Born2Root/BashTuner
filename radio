@@ -29,6 +29,16 @@ fi
 
 trap "rm -f $fifo" INT TERM EXIT
 
+check_dependencies() {
+    for cmd in zenity mplayer; do
+        if ! command -v "$cmd" &> /dev/null; then
+            echo "$cmd is not installed."
+            return 1
+        fi
+    done
+    return 0
+}
+
 
 playradio() {
 auswahl=$(awk -F "	" '{print $1"\n"$2}' $pfadsender | zenity --list --hide-column=1 --column "Nummer" --column "Sender" --title="Bashtuner" --ok-label="Abspielen" --cancel-label="Exit" --text="Radiosender einschalten" --width=600 --height=300)
@@ -60,4 +70,9 @@ done
 playradio
 fi
 }
+check_dependencies
+if [ $? -ne 0 ]; then
+    echo "Please install the missing dependencies and try again."
+    exit 1
+fi
 playradio
